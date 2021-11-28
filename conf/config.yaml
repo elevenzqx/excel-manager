@@ -1,0 +1,74 @@
+mysql:
+  host: 127.0.1.1   # ip
+  user: test        # 用户名
+  port: 3306        # 端口
+  db: test
+  password: pw
+
+input:
+  - type: csv # path|value
+    value: ./data/A.xls
+    name: sponsored
+    start: 1 # 开始位置，预留未实现
+    end: 100 # 结束位置，预留未实现
+    outters:
+      - name: counter
+        group:
+          handler: regx # regx 选择正则表达式类型; regx|none
+          param:
+            value: (([A-Za-z])[A-Za-z0-9]+) # 表达式
+            index: 1 # 下则表达式的先项值
+          column: 1 # 传入的列表项
+        filters:
+          - column: 1
+            name: contains # equals|contains|regx
+            value: ASAM,V155 # 逗号分割，可用 ${sheetArgs}
+            match: false # 是否匹配，true 为匹配到则转出， false 为反向输出
+        options:
+          - name: totalSum
+            type: sum # sum|count|average|list|text
+            column: 13
+          - name: name
+            type: text # sum|count|average|list|text
+            column: 1
+          - name: count
+            type: count # sum|count|average|list|text
+            column: 0
+  - type: csv # path|value
+    value: ./data/A.xls
+    name: business
+    start: 1 # 开始位置，预留未实现
+    end: 100 # 结束位置，预留未实现
+    outters:
+      - name: text
+        group:
+          handler: regx # regx 选择正则表达式类型; regx|none
+          param:
+            value: (([A-Za-z])[A-Za-z0-9]+) # 表达式
+            index: 1 # 下则表达式的先项值
+          column: 1 # 传入的列表项
+        filters:
+          - column: 1
+            name: contains # equals|contains|regx
+            value: ASAM,V155 # 逗号分割，可用 ${sheetArgs}
+            match: false # 是否匹配，true 为匹配到则转出， false 为反向输出
+        options:
+          - name: name
+            type: text # sum|count|average|list|text
+            column: 5
+
+output:
+  - type: csv
+    value: ./data/output.csv
+    appender:
+      name: group-appender
+      value:
+        - input: sponsored
+          outter: counter
+          option: ['totalSum', 'count']
+        - input: business
+          outter: text
+          option: ['name']
+    sheet:
+      template: "" # 模板
+      source: "" # input 中的 filters 某一个的输出名称 name
