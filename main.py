@@ -13,7 +13,7 @@ def handle_inputs(config):
         input_map = handle_inputer(x)
         datas[x["name"]] = input_map
     return datas
-        
+    
 
 # 处理单项输入信息
 def handle_inputer(inputer):
