@@ -3,8 +3,9 @@ from foo.filter.filterchain import FilterChain
 from foo.option.option import get_handler
 from foo.conf.yaml_parse import get_config
 from foo.importer.reader import importer
-from foo.outputer.writer import outputer
+from foo.outputer.writer import writer
 from foo.appender.appender import appender
+
 
 # 处里输入信息
 def handle_inputs(config):
@@ -13,7 +14,7 @@ def handle_inputs(config):
         input_map = handle_inputer(x)
         datas[x["name"]] = input_map
     return datas
-    
+
 
 # 处理单项输入信息
 def handle_inputer(inputer):
@@ -24,6 +25,7 @@ def handle_inputer(inputer):
         # df = pd.DataFrame.from_dict(group_map, orient="index")
         input_map[o["name"]] = group_map
     return input_map
+
 
 # 处理单个输入项
 def handle_outter(inputer, outter):
@@ -51,6 +53,11 @@ def handle_outter(inputer, outter):
         group_data = group_map[group_name]
         for o in outter["options"]:
             get_handler(o["type"]).handle(row, o, group_data)
+    # if "after" in outter:
+    #     for value in group_map.values():
+    #         for o in outter["after"]:
+    #             get_handler(o["type"]).handle(row, o, group_data)
+
     return group_map
 
 
@@ -59,23 +66,26 @@ def handle_outputs(datas, config):
     for x in config:
         handle_output(datas, x)
 
+
 # 输出单个数据
-def handle_output(datas, output):
-    writer = outputer(output["type"])
-    writer.load(output)
+def handle_output(data, output):
+    w = writer(output["type"])
+    w.load(output)
     appender_cfg = output["appender"]
     append = appender(appender_cfg["name"])
-    df = append.append(datas, appender_cfg)
-    writer.wirte(df)
+    df = append.append(data, appender_cfg)
+    w.write(df, output)
     pass
+
 
 def main():
     config = get_config('conf/config.yaml')
     input_cfg = config["input"]
-    datas = handle_inputs(input_cfg)
+    data = handle_inputs(input_cfg)
     output_cfg = config["output"]
-    handle_outputs(datas, output_cfg)
-    print(datas)
+    handle_outputs(data, output_cfg)
+    print(data)
+
 
 '''
 # 执行入口

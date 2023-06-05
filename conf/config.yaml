@@ -6,6 +6,28 @@ mysql:
   password: pw
 
 input:
+  - type: excel # path|value
+    value: ./data/B1.xlsx
+    name: business
+    start: 1 # 开始位置，预留未实现
+    end: 100 # 结束位置，预留未实现
+    outters:
+      - name: price
+        group:
+          handler: regx # regx 选择正则表达式类型; regx|none
+          param:
+            value: (([A-Za-z])[A-Za-z0-9]+) # 表达式
+            index: 1 # 下则表达式的先项值
+          column: 11 # 传入的列表项
+        filters:
+          - column: 11
+            name: contains # equals|contains|regx
+            value: ASAM,V155 # 逗号分割，可用 ${sheetArgs}
+            match: false # 是否匹配，true 为匹配到则转出， false 为反向输出
+        options:
+          - name: item-price
+            type: sum # sum|count|average|list|text
+            column: 16
   - type: csv # path|value
     value: ./data/A.xls
     name: sponsored
@@ -25,50 +47,40 @@ input:
             value: ASAM,V155 # 逗号分割，可用 ${sheetArgs}
             match: false # 是否匹配，true 为匹配到则转出， false 为反向输出
         options:
-          - name: totalSum
+          - name: exposure # 曝光量
+            type: sum # sum 求和
+            column: 12
+          - name: orderCount # 订单量
             type: sum # sum|count|average|list|text
-            column: 13
-          - name: name
-            type: text # sum|count|average|list|text
-            column: 1
-          - name: count
-            type: count # sum|count|average|list|text
-            column: 0
-  - type: csv # path|value
-    value: ./data/A.xls
-    name: business
-    start: 1 # 开始位置，预留未实现
-    end: 100 # 结束位置，预留未实现
-    outters:
-      - name: text
-        group:
-          handler: regx # regx 选择正则表达式类型; regx|none
-          param:
-            value: (([A-Za-z])[A-Za-z0-9]+) # 表达式
-            index: 1 # 下则表达式的先项值
-          column: 1 # 传入的列表项
-        filters:
-          - column: 1
-            name: contains # equals|contains|regx
-            value: ASAM,V155 # 逗号分割，可用 ${sheetArgs}
-            match: false # 是否匹配，true 为匹配到则转出， false 为反向输出
-        options:
-          - name: name
-            type: text # sum|count|average|list|text
-            column: 5
+            column: 17
+          - name: cost # 花费
+            type: sum # sum|count|average|list|text
+            column: 15
 
 output:
   - type: csv
     value: ./data/output.csv
     appender:
-      name: group-appender
+      name: left-join-appender
       value:
         - input: sponsored
           outter: counter
-          option: ['totalSum', 'count']
+          type: main # main 为主，无论如何都会加入到输出项; join 为辅助项，可能有不存在
+          option:
+            - name: id
+              bind: group
+            - name: exposure
+              bind: exposure
+            - name: orderCount
+              bind: orderCount
+            - name: cost
+              bind: cost
         - input: business
-          outter: text
-          option: ['name']
-    sheet:
-      template: "" # 模板
-      source: "" # input 中的 filters 某一个的输出名称 name
+          outter: price
+          type: join # main 为主，无论如何都会加入到输出项; join 为辅助项，可能有不存在
+          dict:
+            Z0S1S0109LR91: Z1W118134
+          option:
+            - name: price
+              bind: item-price
+    calculate:

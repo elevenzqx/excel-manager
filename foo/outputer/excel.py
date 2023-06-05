@@ -10,6 +10,6 @@ class ExcelWriter(Reader):
     def load(self, param):
         self.path = param["value"]
 
-    def wirte(self, df : pd.DataFrame, param):
+    def write(self, df: pd.DataFrame, param):
         # 将excel转换成DataFrame
         df.to_excel(self.path, sheet_name='biubiu')

@@ -1,4 +1,4 @@
 from foo.appender.appender import register
-from foo.appender.group_appender import *
+from foo.appender.left_join_appender import *
 
-register("group-appender", GroupAppender())
+register("left-join-appender", LeftJoinAppender())

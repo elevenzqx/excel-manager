@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 # 定义抽象的输出器
 class Appender:
     def load(self, param):
@@ -9,14 +10,13 @@ class Appender:
         pass
 
 
-
-appenders = {}
+appends = {}
 
 
 # 注册读取器
-def register(name, appender: Appender):
-    appenders[name] = appender
+def register(name, append: Appender):
+    appends[name] = append
 
 
 def appender(name) -> Appender:
-    return appenders[name]
+    return appends[name]
